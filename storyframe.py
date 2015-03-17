@@ -1,4 +1,4 @@
-import sys, re, os, urllib, urlparse, pickle, wx, codecs, tempfile, images, version
+import sys, re, os, urllib, urlparse, pickle, wx, codecs, tempfile, images, version, json
 from wx.lib import imagebrowser
 from tiddlywiki import TiddlyWiki
 from storypanel import StoryPanel
@@ -103,6 +103,8 @@ class StoryFrame(wx.Frame):
         self.Bind(wx.EVT_MENU, self.importHtmlDialog, id=StoryFrame.FILE_IMPORT_HTML)
         importMenu.Append(StoryFrame.FILE_IMPORT_SOURCE, 'Twee Source &Code...')
         self.Bind(wx.EVT_MENU, self.importSourceDialog, id=StoryFrame.FILE_IMPORT_SOURCE)
+        importMenu.Append(StoryFrame.FILE_IMPORT_JSON, 'JSON...')
+        self.Bind(wx.EVT_MENU, self.importJsonDialog, id=StoryFrame.FILE_IMPORT_JSON)
 
         fileMenu.AppendMenu(wx.ID_ANY, '&Import', importMenu)
 
@@ -115,6 +117,9 @@ class StoryFrame(wx.Frame):
 
         exportMenu.Append(StoryFrame.FILE_EXPORT_PROOF, '&Proofing Copy...')
         self.Bind(wx.EVT_MENU, self.proof, id=StoryFrame.FILE_EXPORT_PROOF)
+
+        exportMenu.Append(StoryFrame.FILE_EXPORT_JSON, 'JSON...')
+        self.Bind(wx.EVT_MENU, self.jsonExport, id=StoryFrame.FILE_EXPORT_JSON)
 
         fileMenu.AppendMenu(wx.ID_ANY, '&Export', exportMenu)
 
@@ -553,6 +558,35 @@ class StoryFrame(wx.Frame):
 
         dialog.Destroy()
 
+    def jsonExport(self, event=None):
+        """Asks the user to choose a file to export json to, then exports the wiki."""
+        dialog = wx.FileDialog(self, 'Export JSON', os.getcwd(), "", \
+                               'JSON File (*.dlg;* .json; *.txt)|*.dlg;*.json;*.txt|All Files (*.*)|*.*',
+                               wx.FD_SAVE | wx.FD_OVERWRITE_PROMPT | wx.FD_CHANGE_DIR)
+        if dialog.ShowModal() == wx.ID_OK:
+            try:
+                path = dialog.GetPath()
+                with open(path, 'w') as outfile:
+                    json_widgets = []
+                    for widget in self.storyPanel.widgetDict.itervalues():
+                        data = {
+                            'title':widget.passage.title,
+                            'text':widget.passage.text,
+                            'tags':widget.passage.tags,
+                            'condition':widget.passage.condition,
+                            'action':widget.passage.action,
+                            'delay':widget.passage.delay,
+                            'actor':widget.passage.actor,
+                            'auto':widget.passage.auto
+                        }
+                        json_widgets.append(data)
+                    json.dump(json_widgets, outfile)
+            except:
+                self.app.displayError('exporting your story to json')
+
+        dialog.Destroy()
+        
+
     def importHtmlDialog(self, event=None):
         """Asks the user to choose a file to import HTML tiddlers from, then imports into the current story."""
         dialog = wx.FileDialog(self, 'Import From Compiled HTML', os.getcwd(), '', \
@@ -566,6 +600,40 @@ class StoryFrame(wx.Frame):
         """Imports the tiddler objects in a HTML file into the story."""
         self.importSource(path, True)
 
+    def importJsonDialog(self, event=None):
+        """Asks the user to choose a file to import json from, then imports into the current story."""
+        dialog = wx.FileDialog(self, 'Import JSON', os.getcwd(), '', \
+                               'Twee File (*.dlg;* .json; *.txt)|*.dlg;*.json;*.txt|All Files (*.*)|*.*',
+                               wx.FD_OPEN | wx.FD_CHANGE_DIR)
+
+        if dialog.ShowModal() == wx.ID_OK:
+            self.importJson(dialog.GetPath())
+
+    def importJson(self, path):
+        """Imports the tiddler objects in a json file into the story."""
+        try:
+            with open(path) as infile:
+                lastpos = [0, 0]
+                addedWidgets = []
+                for widget in json.load(infile):
+                    new = self.storyPanel.newWidget(title = widget['title'],
+                                                    tags = widget['tags'],
+                                                    text = widget['text'],
+                                                    condition = widget['condition'],
+                                                    action = widget['action'],
+                                                    delay = widget['delay'],
+                                                    actor = widget['actor'],
+                                                    auto = widget['auto'],
+                                                    quietly=True,
+                                                    pos = lastpos)
+                    lastpos = new.pos
+                    addedWidgets.append(new)
+                self.setDirty(True, 'Import')
+                for widget in addedWidgets:
+                    widget.clearPaintCache()
+        except:
+            self.app.displayError('importing json')
+            
     def importSourceDialog(self, event=None):
         """Asks the user to choose a file to import source from, then imports into the current story."""
         dialog = wx.FileDialog(self, 'Import Source Code', os.getcwd(), '', \
@@ -617,7 +685,7 @@ class StoryFrame(wx.Frame):
                     if tiddler.title in skippedTitles:
                         continue
                     new = self.storyPanel.newWidget(title=tiddler.title, tags=tiddler.tags,
-                                                    text=tiddler.text, quietly=True,
+                                                    text=tiddler.text, condition = tiddler.condition, action = tiddler.action, delay = tiddler.delay, actor = tiddler.actor, auto = tiddler.auto, quietly=True,
                                                     pos=tiddler.pos if tiddler.pos else lastpos)
                     lastpos = new.pos
                     addedWidgets.append(new)
@@ -1276,6 +1344,8 @@ You can also include URLs of .tws and .twee files, too.
     FILE_EXPORT_PROOF = 102
     FILE_EXPORT_SOURCE = 103
     FILE_IMPORT_HTML = 104
+    FILE_IMPORT_JSON = 105
+    FILE_EXPORT_JSON = 106
 
     EDIT_FIND_NEXT = 201
 

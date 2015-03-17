@@ -164,16 +164,47 @@ class PassageFrame(wx.Frame):
         # title/tag controls
 
         self.topControls = wx.Panel(self.panel)
-        topSizer = wx.FlexGridSizer(3, 2, metrics.size('relatedControls'), metrics.size('relatedControls'))
+        topSizer = wx.FlexGridSizer(8, 2, metrics.size('relatedControls'), metrics.size('relatedControls'))
 
         self.titleLabel = wx.StaticText(self.topControls, style = wx.ALIGN_RIGHT, label = PassageFrame.TITLE_LABEL)
         self.titleInput = wx.TextCtrl(self.topControls)
         tagsLabel = wx.StaticText(self.topControls, style = wx.ALIGN_RIGHT, label = PassageFrame.TAGS_LABEL)
         self.tagsInput = wx.TextCtrl(self.topControls)
+
+        # MSR Related
+        
+        self.conditionLabel = wx.StaticText(self.topControls, style = wx.ALIGN_RIGHT, label = PassageFrame.CONDITION_LABEL)
+        self.conditionInput = wx.TextCtrl(self.topControls)
+        self.actionLabel = wx.StaticText(self.topControls, style = wx.ALIGN_RIGHT, label = PassageFrame.ACTION_LABEL)
+        self.actionInput = wx.TextCtrl(self.topControls)
+        
+        self.delayLabel = wx.StaticText(self.topControls, style = wx.ALIGN_RIGHT, label = PassageFrame.DELAY_LABEL)
+        self.delayInput = wx.TextCtrl(self.topControls)
+        self.actorLabel = wx.StaticText(self.topControls, style = wx.ALIGN_RIGHT, label = PassageFrame.ACTOR_LABEL)
+        self.actorInput = wx.TextCtrl(self.topControls)
+
+        self.autoLabel = wx.StaticText(self.topControls, style = wx.ALIGN_RIGHT, label = PassageFrame.AUTO_LABEL)
+        self.autoInput = wx.CheckBox(self.topControls)
+
+        
         topSizer.Add(self.titleLabel, 0, flag = wx.ALL, border = metrics.size('focusRing'))
         topSizer.Add(self.titleInput, 1, flag = wx.EXPAND | wx.ALL, border = metrics.size('focusRing'))
         topSizer.Add(tagsLabel, 0, flag = wx.ALL, border = metrics.size('focusRing'))
         topSizer.Add(self.tagsInput, 1, flag = wx.EXPAND | wx.ALL, border = metrics.size('focusRing'))
+
+        topSizer.Add(self.conditionLabel, 0, flag = wx.ALL, border = metrics.size('focusRing'))
+        topSizer.Add(self.conditionInput, 1, flag = wx.EXPAND | wx.ALL, border = metrics.size('focusRing'))
+        topSizer.Add(self.actionLabel, 0, flag = wx.ALL, border = metrics.size('focusRing'))
+        topSizer.Add(self.actionInput, 1, flag = wx.EXPAND | wx.ALL, border = metrics.size('focusRing'))
+
+        topSizer.Add(self.delayLabel, 0, flag = wx.ALL, border = metrics.size('focusRing'))
+        topSizer.Add(self.delayInput, 1, flag = wx.EXPAND | wx.ALL, border = metrics.size('focusRing'))
+        topSizer.Add(self.actorLabel, 0, flag = wx.ALL, border = metrics.size('focusRing'))
+        topSizer.Add(self.actorInput, 1, flag = wx.EXPAND | wx.ALL, border = metrics.size('focusRing'))
+        
+        topSizer.Add(self.autoLabel, 0, flag = wx.ALL, border = metrics.size('focusRing'))
+        topSizer.Add(self.autoInput, 1, flag = wx.EXPAND | wx.ALL, border = metrics.size('focusRing'))
+        
         topSizer.AddGrowableCol(1, 1)
         self.topControls.SetSizer(topSizer)
 
@@ -225,6 +256,14 @@ class PassageFrame(wx.Frame):
 
         self.titleInput.Bind(wx.EVT_TEXT, self.syncPassage)
         self.tagsInput.Bind(wx.EVT_TEXT, self.syncPassage)
+        
+        self.conditionInput.Bind(wx.EVT_TEXT, self.syncPassage)
+        self.actionInput.Bind(wx.EVT_TEXT, self.syncPassage)
+        self.delayInput.Bind(wx.EVT_TEXT, self.syncPassage)
+        self.actorInput.Bind(wx.EVT_TEXT, self.syncPassage)
+        
+        self.autoInput.Bind(wx.EVT_CHECKBOX, self.syncPassage)
+        
         self.bodyInput.Bind(wx.stc.EVT_STC_CHANGE, self.syncPassage)
         self.bodyInput.Bind(wx.stc.EVT_STC_START_DRAG, self.prepDrag)
         self.Bind(wx.EVT_CLOSE, self.closeEditor)
@@ -251,6 +290,13 @@ class PassageFrame(wx.Frame):
         """Updates the inputs based on the passage's state."""
         self.titleInput.SetValue(self.widget.passage.title)
         self.bodyInput.SetText(self.widget.passage.text)
+        
+        self.conditionInput.SetValue(self.widget.passage.condition)
+        self.actionInput.SetValue(self.widget.passage.action)
+        self.delayInput.SetValue(self.widget.passage.delay)
+        self.actorInput.SetValue(self.widget.passage.actor)
+
+        self.autoInput.SetValue(self.widget.passage.auto)
 
         tags = ''
 
@@ -296,6 +342,15 @@ class PassageFrame(wx.Frame):
 
         # Set body text
         self.widget.passage.text = self.bodyInput.GetText()
+
+        self.widget.passage.condition = self.conditionInput.GetValue()
+        self.widget.passage.action = self.actionInput.GetValue()
+        self.widget.passage.delay = self.delayInput.GetValue()
+        self.widget.passage.actor = self.actorInput.GetValue()
+        
+        self.widget.passage.auto = self.autoInput.GetValue()
+
+
         # Preserve the special (uneditable) tags
         self.widget.passage.tags = []
         self.widget.clearPaintCache()
@@ -782,6 +837,12 @@ class PassageFrame(wx.Frame):
     DEFAULT_SIZE = (550, 600)
     TITLE_LABEL = 'Title'
     TAGS_LABEL = 'Tags (separate with spaces)'
+    
+    CONDITION_LABEL = 'Condition'
+    ACTION_LABEL = 'Action'
+    DELAY_LABEL = 'Delay in seconds'
+    ACTOR_LABEL = 'Actor name'
+    AUTO_LABEL = 'Auto respond?'
 
     # menu constants (not defined by wx)
 

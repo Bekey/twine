@@ -83,7 +83,7 @@ class StoryPanel(wx.ScrolledWindow):
         self.Bind(wx.EVT_LEAVE_WINDOW, self.handleHoverStop)
         self.Bind(wx.EVT_MOTION, self.handleHover)
 
-    def newWidget(self, title = None, text = '', tags = (), pos = None, quietly = False, logicals = False):
+    def newWidget(self, title = None, text = '', tags = (), condition = '', action = '', delay = '', actor = '', auto = False, pos = None, quietly = False, logicals = False):
         """Adds a new widget to the container."""
 
         # defaults
@@ -97,7 +97,7 @@ class StoryPanel(wx.ScrolledWindow):
         if not pos: pos = StoryPanel.INSET
         if not logicals: pos = self.toLogical(pos)
 
-        new = PassageWidget(self, self.app, title = title, text = text, tags = tags, pos = pos)
+        new = PassageWidget(self, self.app, title = title, text = text, tags = tags, pos = pos, condition = condition, action = action, delay = delay, actor = actor, auto = auto)
         self.widgetDict[new.passage.title] = new
         self.snapWidget(new, quietly)
         self.resize()

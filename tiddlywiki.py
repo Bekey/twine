@@ -331,6 +331,12 @@ class Tiddler: # pylint: disable=old-style-class
         self.images = []
         self.macros = []
 
+        self.condition = ""
+        self.action = ""
+        self.delay = ""
+        self.actor = ""
+        self.auto = False
+
         """Pass source code, and optionally 'twee' or 'html'"""
         if type == 'twee':
             self.initTwee(source)
@@ -346,6 +352,11 @@ class Tiddler: # pylint: disable=old-style-class
             'title': self.title,
             'tags': self.tags,
             'text': self.text,
+            'condition': self.condition,
+            'action': self.action,
+            'delay': self.delay,
+            'actor': self.actor,
+            'auto': self.auto,
         }
 
     def __repr__(self):
@@ -363,6 +374,12 @@ class Tiddler: # pylint: disable=old-style-class
 
         meta_bits = lines[0].split('[')
         self.title = meta_bits[0].strip(' :')
+
+        self.condition = ""
+        self.action = ""
+        self.delay = ""
+        self.actor = ""
+        self.auto = False
 
         # find tags
 
